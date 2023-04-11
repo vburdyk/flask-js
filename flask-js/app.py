@@ -1,5 +1,5 @@
 from functools import lru_cache
-from flask import Flask, abort, request, Response
+from flask import Flask, abort, request, Response, jsonify
 from flask import Blueprint, render_template
 
 from statapi import methods
@@ -21,7 +21,7 @@ app.register_blueprint(assets, url_prefix='/')
 def memory():
     mem = methods['virtual_memory'](format=None)
     app.logger.debug('Got memory data:\n\t %r', mem)
-    return render_template('memory.html.jinja',
+    return render_template('memory.html',
                            pagetitle='Memory statistics',
                            statname='memory',
                            mem=mem
@@ -37,11 +37,18 @@ def memory():
 #       and use template inheritance
 @app.route('/memory-client')
 def memory_client():
-    ...
-    # add logic here
-    ...
-    return render_template('memory-client.html')
+    mem = methods['virtual_memory'](format=None)
+    app.logger.debug('Got memory data:\n\t %r', mem)
+    return render_template('memory-client.html',
+                            statname='memory',
+                            pagetitle='Memory stat',
+                            mem=mem)
 
+
+@app.route('/memory-client-json')
+def memory_json():
+    mem = methods['virtual_memory'](format=None)
+    return jsonify(mem)
 
 
 @app.route('/stats/')
@@ -82,4 +89,4 @@ if __name__ == '__main__':
     #     to production, in which case a proper WSGI application
     #     server and a reverse-proxy is needed
     #     0.0.0.0 means "run on all interfaces" -- insecure
-    app.run(host='127.0.0.1', port=5000, debug=True)
+    app.run(host='127.0.0.1', port=8000, debug=True)
